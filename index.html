@@ -255,7 +255,7 @@ Anuleaza
              // Extract the relevant information after "CANT."
             let remainingTexts = paraTexts.slice(cantIndex);
             paraOutput += "\n"
-            paraOutput += remainingTexts.join("|")
+            paraOutput += remainingTexts.filter(line => !(line.includes("Incarca mai putine") || line.includes("Produse aditionale"))).join("|")
             paraOutput += "\n--------------------------------------------\n"
             console.log(paraOutput)
             textOutput += paraOutput
