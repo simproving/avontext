@@ -1,37 +1,279 @@
-<HTML>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text Area Processing</title>
+<style>
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .row {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    textarea {
+        width: 550px;
+        height: 750px;
+        margin: 5px;
+        padding: 5px;
+        border: 1px solid #ccc;
+        resize: none;
+    }
+    button {
+        margin-bottom: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    #result {
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
 
-<HEAD>
+<div class="container">
+    <button id="processButton">Process Text</button>
+    <div class="row">
+        <textarea id="textarea1" placeholder="Text Area 1"></textarea>
+        <textarea id="textarea2" placeholder="Text Area 2"></textarea>
+    </div>
+    <div id="result"></div>
+</div>
 
-<TITLE>Your Title Here</TITLE>
+<script>
 
-</HEAD>
+    // Get references to the elements
+    const textarea1 = document.getElementById('textarea1');
+    const textarea2 = document.getElementById('textarea2');
+    const resultDiv = document.getElementById('result');
+    const processButton = document.getElementById('processButton');
 
-<BODY BGCOLOR="FFFFFF">
+    // Add click event listener to the button
+    processButton.addEventListener('click', function() {
+        // Get the text from the first textarea
+        var text = textarea1.value;
+        // temporary remove after debug
+        text2 = `
+        
+Apă de toaletă Full Speed
+Produs disponibil
+CANT. 1
+49.99 Lei
+Pret unitar - 49.99 Lei
+37.49 Lei
+25%
 
-<CENTER><IMG SRC="clouds.jpg" ALIGN="BOTTOM"> </CENTER>
+05330
+Produs disponibil
+CANT. 1
+29.99 Lei
+Pret unitar - 29.99 Lei
+22.49 Lei
+25%
 
-<HR>
+22491
+Produs disponibil
+CANT. 1
+29.99 Lei
+Pret unitar - 29.99 Lei
+22.49 Lei
+25%
 
-<a href="http://somegreatsite.com">Link Name</a>
+Set Platinum zi-noapte
+Produs disponibil
+Crema hranitoare de noapte cu Protinol ™ Produs disponibil
+Crema de zi pentru lifting SPF 25 cu Protinol ™ Produs disponibil
+CANT. 1
+90.00 Lei
+Pret unitar - 90.00 Lei
+67.50 Lei
+25%
 
-is a link to another nifty site
+AT ULT SHINE COND EMEA 1220986 SPF 0 122
+Produs disponibil
+CANT. 1
+16.99 Lei
+Pret unitar - 16.99 Lei
+12.74 Lei
+25%
 
-<H1>This is a Header</H1>
+Set Naturals Kids
+Produs disponibil
+Şampon şi balsam Natural Kids cu aromă de măr Produs disponibil
+NATURALS KIDS SWIRLING 1127507 SPF 0 Produs disponibil
+Spray pentru descurcarea parului cu aroma de mango Produs disponibil
+CANT. 1
+39.99 Lei
+Pret unitar - 39.99 Lei
+29.99 Lei
+25%
 
-<H2>This is a Medium Header</H2>
+Cremă de mâini Tropical Fruits
+Produs disponibil
+CANT. 2
+11.98 Lei
+Pret unitar - 5.99 Lei
+8.99 Lei
+25%
 
-Send me mail at <a href="mailto:support@yourcompany.com">
+Cremă de mâini delicată
+Produs disponibil
+CANT. 2
+11.98 Lei
+Pret unitar - 5.99 Lei
+8.99 Lei
+25%
 
-support@yourcompany.com</a>.
+Cremă de mâini Essential Moisture
+Produs disponibil
+CANT. 2
+11.98 Lei
+Pret unitar - 5.99 Lei
+8.99 Lei
+25%
 
-<P> This is a new paragraph!
+31427
+Produs disponibil
+CANT. 1
+13.99 Lei
+Pret unitar - 13.99 Lei
+10.49 Lei
+25%
 
-<P> <B>This is a new paragraph!</B>
+35758
+Produs disponibil
+CANT. 1
+13.99 Lei
+Pret unitar - 13.99 Lei
+10.49 Lei
+25%
 
-<BR> <B><I>This is a new sentence without a paragraph break, in bold italics.</I></B>
+23408
+Produs disponibil
+CANT. 1
+45.00 Lei
+Pret unitar - 45.00 Lei
+38.25 Lei
+15%
 
-<HR>
+18424
+Produs disponibil
+CANT. 1
+39.99 Lei
+Pret unitar - 39.99 Lei
+29.99 Lei
+25%
 
-</BODY>
+Brosura Campania 05 - 2023
+Produs disponibil
+CANT. 1
+4.00 Lei
+Pret unitar - 4.00 Lei
+4.00 Lei
+0%
 
-</HTML>
+75408
+Produs disponibil
+1186566 SPF 0COPY OF LEGACY MI 565119 Produs disponibil
+75424 Produs disponibil
+CANT. 1
+5.00 Lei
+Pret unitar - 5.00 Lei
+5.00 Lei
+0%
+
+My Avon Magazine 05
+Produs disponibil
+CANT. 1
+0.65 Lei
+Pret unitar - 0.65 Lei
+0.65 Lei
+0%
+Incarca mai putine
+Produse aditionale
+
+Brosura Campania 05 - 2023
+Produs disponibil
+CANT. 1
+0.00 Lei
+Pret unitar - 0.00 Lei
+0.00 Lei
+0%
+
+C05 24 FLYER RO MD
+Produs disponibil
+CANT. 1
+0.00 Lei
+Pret unitar - 0.00 Lei
+0.00 Lei
+0%
+Rezumatul comenzii
+Valoarea de brosura a comenzii
+409.86 Lei
+Produse aditionale
+?
+2 produse (valoarea de brosura a produselor aditionale)0.00 Lei
+Taxe livrare si procesare1.90 Lei
+Beneficiile tale
+96.96 Lei
+Total de plata
+Valoarea de plata cu discount aplicat, taxe si produse aditionale
+?
+320.45 Lei
+Pentru a plasa aceasta comanda este necesar sa accepti Termenii si conditiile.
+Pentru a trimite comanda este necesar sa selectezi Metoda de livrare,Adresa de livrare,Metoda de plata,Termeni si Conditii
+Anuleaza
+
+        `
+
+        var paragraphs = text.trim().split(/\n\s*\n/);
+        var textOutput = ""
+        var endText = ""
+
+        // Iterate over paragraphs using forEach
+        paragraphs.forEach(function(paragraph, index) {
+            paragraph.trim()
+            if (index == paragraphs.length - 1) {
+                // Special case for final line
+                splitLastLine = paragraph.split("Rezumatul")
+                paragraph = splitLastLine[0]
+                endText = splitLastLine[1]
+            }
+            var paraTexts = paragraph.split("\n")
+            paraOutput = paraTexts[0] // we keep the first line
+            cantIndex = paraTexts.findIndex(line => line.includes('CANT.'));
+             // Extract the relevant information after "CANT."
+            let remainingTexts = paraTexts.slice(cantIndex);
+            paraOutput += "\n"
+            paraOutput += remainingTexts.join("|")
+            paraOutput += "\n--------------------------------------------\n"
+            console.log(paraOutput)
+            textOutput += paraOutput
+
+            if (endText != "") {
+
+            }
+        });
+
+        textarea2.value = textOutput
+
+        // Process the text (for example, count the number of characters)
+        const processedText = `Number of characters: ${text.length}`;
+
+        // Display the processed result
+        resultDiv.textContent = processedText;
+    });
+</script>
+
+</body>
+</html>
