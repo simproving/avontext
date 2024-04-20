@@ -63,7 +63,7 @@
         // Get the text from the first textarea
         var text = textarea1.value;
         // temporary remove after debug
-        text2 = `
+        text = `
         
 Apă de toaletă Full Speed
 Produs disponibil
@@ -261,6 +261,15 @@ Anuleaza
             textOutput += paraOutput
 
             if (endText != "") {
+                textOutput += "\nRezmatul Comenzii\n"
+                
+                endTextSplit = endText.split("\n")
+                leiList = endTextSplit.filter(line => line.includes("Lei"))
+                taxe = endTextSplit.filter(line => line.includes("Taxe livrare"))
+                textOutput += "Valoarea de brosura a comenzii: " + leiList[0]
+                textOutput += "\n" + taxe + "\n"
+
+                textOutput += "Total de plata: " + leiList.pop()
 
             }
         });
