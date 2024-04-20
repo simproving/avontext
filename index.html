@@ -63,7 +63,7 @@
         // Get the text from the first textarea
         var text = textarea1.value;
         // temporary remove after debug
-        text = `
+        text2 = `
         
 Apă de toaletă Full Speed
 Produs disponibil
@@ -275,12 +275,6 @@ Anuleaza
         });
 
         textarea2.value = textOutput
-
-        // Process the text (for example, count the number of characters)
-        const processedText = `Number of characters: ${text.length}`;
-
-        // Display the processed result
-        resultDiv.textContent = processedText;
     });
 </script>
 
