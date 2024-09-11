@@ -48,13 +48,19 @@
         <textarea id="textarea1" placeholder="Text Area 1"></textarea>
         <textarea id="textarea2" placeholder="Text Area 2"></textarea>
     </div>
+
 </div>
 
 <script>
     function printTextarea2() {
         var printContents = document.getElementById("textarea2").value;
-        w=window.open(' ', ' ');
-        w.document.write(printContents);
+        split_text = printContents.split("\n");
+        textToBePrinted = ""
+        for (let i = 0; i < split_text.length; i++) {
+            textToBePrinted += split_text[i] + "<br>";
+        }
+        w=window.open(' ',' ');
+        w.document.write(textToBePrinted);
         w.print();
         w.close();
     }
@@ -262,14 +268,14 @@ Anuleaza
              // Extract the relevant information after "CANT."
             let remainingTexts = paraTexts.slice(cantIndex);
             paraOutput += "\n"
-            paraOutput += remainingTexts.filter(line => !(line.includes("Incarca mai putine") || line.includes("Produse aditionale"))).join("|")
+            paraOutput += remainingTexts.filter(line => !(line.includes("Incarca mai putine") || line.includes("Produse aditionale"))).join(" | ")
             paraOutput += "\n--------------------------------------------\n"
             console.log(paraOutput)
             textOutput += paraOutput
 
             if (endText != "") {
                 textOutput += "\nRezumatul Comenzii\n"
-                
+
                 endTextSplit = endText.split("\n")
                 leiList = endTextSplit.filter(line => line.includes("Lei"))
                 taxe = endTextSplit.filter(line => line.includes("Taxe livrare"))
@@ -280,7 +286,6 @@ Anuleaza
 
             }
         });
-
         textarea2.value = textOutput
     });
 </script>
