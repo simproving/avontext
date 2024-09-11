@@ -43,13 +43,22 @@
 
 <div class="container">
     <button id="processButton">Procesare Text</button>
+    <button onclick="printTextarea2()">Printare text casuta 2</button>
     <div class="row">
         <textarea id="textarea1" placeholder="Text Area 1"></textarea>
         <textarea id="textarea2" placeholder="Text Area 2"></textarea>
     </div>
+    
 </div>
 
 <script>
+    function printTextarea2() {
+        var printContents = document.getElementById("textarea2").value;
+        w=window.open();
+        w.document.write(printContents);
+        w.print();
+        w.close();
+    }
 
     // Get references to the elements
     const textarea1 = document.getElementById('textarea1');
@@ -63,7 +72,7 @@
 
         // debug text
         text2 = `
-        
+
 Apă de toaletă Full Speed
 Produs disponibil
 CANT. 1
@@ -260,7 +269,7 @@ Anuleaza
             textOutput += paraOutput
 
             if (endText != "") {
-                textOutput += "\nRezmatul Comenzii\n"
+                textOutput += "\nRezumatul Comenzii\n"
                 
                 endTextSplit = endText.split("\n")
                 leiList = endTextSplit.filter(line => line.includes("Lei"))
