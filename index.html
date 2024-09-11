@@ -48,13 +48,12 @@
         <textarea id="textarea1" placeholder="Text Area 1"></textarea>
         <textarea id="textarea2" placeholder="Text Area 2"></textarea>
     </div>
-    
 </div>
 
 <script>
     function printTextarea2() {
         var printContents = document.getElementById("textarea2").value;
-        w=window.open();
+        w=window.open(' ', ' ');
         w.document.write(printContents);
         w.print();
         w.close();
