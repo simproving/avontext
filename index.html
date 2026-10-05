@@ -23,6 +23,7 @@
         padding: 5px;
         border: 1px solid #ccc;
         resize: none;
+        font-size: 11px;
     }
     button {
         margin-bottom: 10px;
@@ -54,15 +55,194 @@
 <script>
     function printTextarea2() {
         var printContents = document.getElementById("textarea2").value;
-        split_text = printContents.split("\n");
-        textToBePrinted = ""
+        var split_text = printContents.split("\n");
+        var textToBePrinted = ""
         for (let i = 0; i < split_text.length; i++) {
             textToBePrinted += split_text[i] + "<br>";
         }
-        w=window.open(' ',' ');
-        w.document.write(textToBePrinted);
+        var w = window.open(' ', ' ');
+        w.document.write('<style>body{font:10px/1.25 monospace;margin:10mm;}</style>' + textToBePrinted);
         w.print();
         w.close();
+    }
+
+    var RE_REDUS = /^pret redus:?\s*([\d.,]+)/;
+    var RE_NORMAL = /^pret normal:?\s*([\d.,]+)/;
+    var RE_PROCENT = /^reducere:\s*(\d+)\s*%/;
+    var RE_SKU = /^sku:\s*(\d+)/;
+    var RE_MONEY = /^([\d.,]+)\s*(?:lei|ron)$/;
+    var RE_PER_UNIT = /^\((.+)\)$/;
+    var RE_POINTS = /^(\d+)\s*ap$/;
+    var RE_QTY = /^(\d+)$/;
+    var RE_PROMO = /\(-?[\d.,]+\s*lei\)$/;
+
+    var PRODUCT_LABELS = ['pret redus', 'pret normal', 'pret recomandat',
+        'valoare reducere', 'reducere', 'sku', 'cod de reducere',
+        'scade cantitatea', 'creste cantitatea', 'elimina', 'aplica', 'total'];
+
+    // True for anything that is not a name: labels, amounts, quantity, points,
+    // per-unit prices, promo captions ("Senses BB 1L -50% (-12,37 lei)") and the
+    // promo-code block at the end of the basket.
+    function isFieldLine(line) {
+        var n = norm(line);
+        if (n === '' || RE_QTY.test(n) || RE_MONEY.test(n)) return true;
+        if (RE_PER_UNIT.test(n) || RE_POINTS.test(n) || RE_PROMO.test(n)) return true;
+        return PRODUCT_LABELS.some(function (label) { return startsWith(line, label); });
+    }
+
+    // ---- Coș (basket) parser -------------------------------------------------
+    var DIACRITIC_MAP = {
+        '\u0218': 's', '\u0219': 's', '\u021a': 't', '\u021b': 't',
+        '\u0102': 'a', '\u0103': 'a', '\u00c2': 'a', '\u00c3': 'a',
+        '\u00ce': 'i', '\u00cf': 'i', '\u00d2': 'o', '\u00d3': 'o'
+    };
+
+    // Normalizes a raw line so labels can be matched regardless of diacritics
+    // (ț/ş/ă/î/â) or casing coming from the site.
+    function norm(value) {
+        return String(value)
+            .replace(/[\u0218\u0219\u021a\u021b\u0102\u0103\u00c2\u00c3\u00ce\u00cf\u00d2\u00d3]/g,
+                function (c) { return DIACRITIC_MAP[c]; })
+            .toLowerCase()
+            .replace(/\u00a0/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function startsWith(line, prefix) { return norm(line).indexOf(prefix) === 0; }
+
+    // Rows after the duplicated product title ("Ulei de buze hrănitor" twice) are
+    // identical most of the time; collapse them so the name prints once.
+    function dedupeConsecutive(rows) {
+        var out = [];
+        rows.forEach(function (row) {
+            if (out.length === 0 || norm(out[out.length - 1]) !== norm(row)) out.push(row);
+        });
+        return out;
+    }
+
+    function toNumber(value) {
+        var n = parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+        return isNaN(n) ? 0 : n;
+    }
+
+    // Extracts the value captured by `re` from `line`, or "" when absent.
+    function capture(re, line) {
+        var m = re.exec(norm(line));
+        return m ? m[1] : "";
+    }
+
+    function indexOfRow(rows, predicate) {
+        for (var i = 0; i < rows.length; i++) {
+            if (predicate(norm(rows[i]), i)) return i;
+        }
+        return -1;
+    }
+
+    function parseProduct(block) {
+        var rows = block.map(function (line) { return line.trim(); });
+        if (indexOfRow(rows, function (n) { return n.indexOf('pret redus') === 0; }) < 0) return null;
+
+        // The site prints the product title twice and drops further name-like lines
+        // (size, scent, ...) in random places inside the block, so the name is
+        // every non-field line of the block.
+        var title = [];
+        for (var i = 0; i < rows.length; i++) {
+            if (!isFieldLine(rows[i])) title.push(rows[i]);
+        }
+
+        var iRedus = indexOfRow(rows, function (n) { return n.indexOf('pret redus') === 0; });
+        var iNormal = indexOfRow(rows, function (n) { return n.indexOf('pret normal') === 0; });
+        var iSku = indexOfRow(rows, function (n) { return RE_SKU.test(n); });
+        var iProcent = indexOfRow(rows, function (n) { return RE_PROCENT.test(n); });
+        var iScade = indexOfRow(rows, function (n) { return n === 'scade cantitatea'; });
+        var iElimina = indexOfRow(rows, function (n) { return n === 'elimina'; });
+
+        return {
+            name: dedupeConsecutive(title).join(' '),
+            sku: iSku >= 0 ? RE_SKU.exec(norm(rows[iSku]))[1] : '',
+            redus: capture(RE_REDUS, rows[iRedus]),
+            normal: iNormal >= 0 ? capture(RE_NORMAL, rows[iNormal]) : '',
+            procent: iProcent >= 0 ? RE_PROCENT.exec(norm(rows[iProcent]))[1] : '',
+            qty: iScade >= 0 ? capture(RE_QTY, rows[iScade + 1] || '') : '',
+            total: iElimina >= 0 ? capture(RE_MONEY, rows[iElimina + 1] || '') : ''
+        };
+    }
+
+    // Splits the basket into one block per product. Blocks start at the product
+    // title and end with "Elimină" + line total; the site is inconsistent about
+    // leaving blank lines between them, so titles are found by walking backwards
+    // from "Preț redus" - never past the previous block's line total, otherwise
+    // a name printed right after a block would be stolen by the next product.
+    function parseBasket(text) {
+        var lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+        var total = "";
+        var separator = "--------------------------------------------\n";
+
+        // The trailing "Total: 401,69 RON" line is not part of any product.
+        for (var t = lines.length - 1; t >= 0; t--) {
+            var m = /^total:\s*(.+)$/i.exec(lines[t].trim());
+            if (m) { total = m[1].trim(); lines.splice(t, 1); break; }
+        }
+
+        // Drop the "Coș / Produs Cantitate Total" table header.
+        var headerEnd = 0;
+        while (headerEnd < lines.length) {
+            var h = norm(lines[headerEnd]);
+            var isHeader = h === 'cos' || h === 'cosul' ||
+                (h.indexOf('cantitate') >= 0 && h.indexOf('total') >= 0);
+            if (h === '' || isHeader) headerEnd++; else break;
+        }
+
+        var blocks = [];
+        var start = headerEnd;
+        var floor = headerEnd;
+        var afterElimina = false;
+        for (var i = headerEnd; i < lines.length; i++) {
+            var n = norm(lines[i]);
+            if (startsWith(lines[i], 'pret redus')) {
+                var nameStart = i;
+                while (nameStart > floor && !isFieldLine(lines[nameStart - 1])) nameStart--;
+                if (nameStart > start) blocks.push(lines.slice(start, nameStart));
+                start = nameStart;
+                afterElimina = false;
+            } else if (n === 'elimina') {
+                afterElimina = true;
+            } else if (afterElimina && RE_MONEY.test(n)) {
+                floor = i + 1;
+                afterElimina = false;
+            }
+        }
+        if (lines.slice(start).some(function (line) { return norm(line) !== ''; })) {
+            blocks.push(lines.slice(start));
+        }
+
+        var products = blocks.map(parseProduct).filter(function (p) { return p !== null; });
+        products.forEach(function (p) { if (p.qty === '') p.qty = '1'; });
+
+        if (total === '') {
+            var sum = products.reduce(function (acc, p) { return acc + toNumber(p.total); }, 0);
+            total = sum.toFixed(2).replace('.', ',') + ' RON';
+        }
+
+        var textOutput = "";
+        products.forEach(function (p) {
+            var head = [];
+            if (p.sku !== '') head.push(p.sku);
+            if (p.name !== '') head.push(p.name);
+
+            var details = ['CANT. ' + p.qty, p.total + ' Lei'];
+            if (p.redus !== '') details.push('Pret unitar - ' + p.redus + ' Lei');
+            if (p.normal !== '') details.push(p.normal + ' Lei');
+            if (p.procent !== '') details.push(p.procent + '%');
+
+            if (head.length > 0) textOutput += head.join(' | ') + "\n";
+            textOutput += details.join(' | ') + "\n" + separator;
+        });
+
+        textOutput += "Total de plata: " + total;
+
+        return { products: products, total: total, text: textOutput };
     }
 
     // Get references to the elements
@@ -74,45 +254,9 @@
     processButton.addEventListener('click', function() {
         // Get the text from the first textarea
         var text = textarea1.value;
-
-        var paragraphs = text.trim().split(/\n\s*\n/);
-        var textOutput = ""
-        var endText = ""
-
-        // Iterate over paragraphs using forEach
-        paragraphs.forEach(function(paragraph, index) {
-            paragraph.trim()
-            if (index == paragraphs.length - 1) {
-                // Special case for final line
-                splitLastLine = paragraph.split("Rezumatul")
-                paragraph = splitLastLine[0]
-                endText = splitLastLine[1]
-            }
-            var paraTexts = paragraph.split("\n")
-            paraOutput = paraTexts[0] // we keep the first line
-            cantIndex = paraTexts.findIndex(line => line.includes('CANT.'));
-             // Extract the relevant information after "CANT."
-            let remainingTexts = paraTexts.slice(cantIndex);
-            paraOutput += "\n"
-            paraOutput += remainingTexts.filter(line => !(line.includes("Incarca mai putine") || line.includes("Produse aditionale"))).join(" | ")
-            paraOutput += "\n--------------------------------------------\n"
-            console.log(paraOutput)
-            textOutput += paraOutput
-
-            if (endText != "") {
-                textOutput += "\nRezumatul Comenzii\n"
-
-                endTextSplit = endText.split("\n")
-                leiList = endTextSplit.filter(line => line.includes("Lei"))
-                taxe = endTextSplit.filter(line => line.includes("Taxe livrare"))
-                textOutput += "Valoarea de brosura a comenzii: " + leiList[0]
-                textOutput += "\n" + taxe + "\n"
-
-                textOutput += "Total de plata: " + leiList.pop()
-
-            }
-        });
-        textarea2.value = textOutput
+        var result = parseBasket(text);
+        textarea2.value = result.products.length ? result.text : "";
+        console.log(result.products);
     });
 </script>
 
